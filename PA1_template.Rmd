@@ -7,7 +7,7 @@ output: html_document
 
 This is my R Markdown document for the 1st reproducible research assignment.
 
-##Load and process the data  
+## Load and process the data  
 
 1. Load packages  
 2. Download and read the data
@@ -65,7 +65,7 @@ steps_day <- with(act, tapply(steps, date1, sum))
  
 ``` 
 
-###Calculate mean and median steps over all days
+### Calculate mean and median steps over all days
 
 ```{r}
 round(mean(steps_day, na.rm = TRUE),2);median(steps_day, na.rm = TRUE)
@@ -75,7 +75,7 @@ The mean steps per day was `r round(mean(steps_day, na.rm = TRUE),2)`, and the m
 
 
 
-###What is the average daily activity pattern?
+### What is the average daily activity pattern?
 
 ```{r}
 steps_int <- as.data.frame(cbind(unique(act$interval),with(act, tapply(steps, interval, mean, na.rm = TRUE))))
@@ -84,7 +84,7 @@ steps_int <- as.data.frame(cbind(unique(act$interval),with(act, tapply(steps, in
    with(steps_int, plot(interval, mean_steps, type = 'l'))
 ``` 
 
-###Which interval contains the max number of steps?
+### Which interval contains the max number of steps?
 
 ```{r}
 which.max(steps_int$mean_steps)
@@ -92,7 +92,7 @@ which.max(steps_int$mean_steps)
   The interval which conatins the maximum number of steps is `r steps_int[104,-2]`.
 
  
-##Impute missing data  
+## Impute missing data  
 For this I am going to use the mean value for each interval to replace missing data. There are 3 steps  :
 
 * Calculate the mean steps for each interval  
@@ -121,7 +121,7 @@ The distribution is now skewed, and the mean is `r signif(mean(steps1_day),5)` a
 
 
 
-###Weekend activity
+### Weekend activity
 
 Finally, create a new variable *weekend* and use the lattice package to plot the data conditioned on weekend
 
