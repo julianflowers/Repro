@@ -1,0 +1,136 @@
+---
+title: "Repro"
+author: "Julian Flowers"
+date: "16 September 2015"
+output: html_document
+---
+
+This is my R Markdown document for the 1st reproducible research assignment.
+
+##Load and process the data  
+
+1. Load packages  
+2. Download and read the data
+
+```{r}
+##I'm using lubridate to do some of the date conversions
+library(lubridate) 
+library(lattice)
+
+## Download, unzip and read in the dataset
+## url <-"https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+## download.file(url, destfile = "act.zip")
+## unzip("act.zip")
+
+act <- read.csv("activity.csv", header = TRUE, stringsAsFactors = FALSE)
+```
+
+See what we have...
+
+```{r}
+## Check the dataset
+dim(act)
+ summary(act)
+```
+
+Next, convert the dates to date format 
+
+```{r}
+## use the ymd command from lubridate; add an extra column
+ act$date1 <- ymd(act$date)
+##check its worked
+ 
+ str(act)
+```
+
+While we're here, add day of the week using wkday()
+
+```{r}
+## use the wkday command from lubridate; add an extra column
+act$wkday <- wday(act$date1, label = TRUE)
+
+ summary(act)
+```
+
+## Calculate the mean steps per day  
+
+Calculate steps per day and store to a new variable; plot histogram
+
+```{r}
+steps_day <- with(act, tapply(steps, date1, sum))
+ 
+     hist(steps_day)
+
+ 
+ 
+``` 
+
+###Calculate mean and median steps over all days
+
+```{r}
+round(mean(steps_day, na.rm = TRUE),2);median(steps_day, na.rm = TRUE)
+```
+The mean steps per day was `r round(mean(steps_day, na.rm = TRUE),2)`, and the median was `r median(steps_day, na.rm = TRUE)`
+
+
+
+
+###What is the average daily activity pattern?
+
+```{r}
+steps_int <- as.data.frame(cbind(unique(act$interval),with(act, tapply(steps, interval, mean, na.rm = TRUE))))
+ colnames(steps_int) <- c("interval", "mean_steps")
+ 
+   with(steps_int, plot(interval, mean_steps, type = 'l'))
+``` 
+
+###Which interval contains the max number of steps?
+
+```{r}
+which.max(steps_int$mean_steps)
+```
+  The interval which conatins the maximum number of steps is `r steps_int[104,-2]`.
+
+ 
+##Impute missing data  
+For this I am going to use the mean value for each interval to replace missing data. There are 3 steps  :
+
+* Calculate the mean steps for each interval  
+* Replace step NAs for each interval with the mean for that interval
+* Combine this as a new field (needs to be unlisted). I have created a new data frame *act2*  
+
+
+
+```{r}
+act1 <- with(act, tapply(steps, interval, function(x) {ifelse(is.na(x), mean(x, na.rm = TRUE), x)}))
+  act2 <- cbind(act, "imp_steps" = unlist(act1))
+  str(act2)
+```
+
+
+```{r}
+steps1_day <- with(act2, tapply(imp_steps, date1, sum))
+  hist(steps1_day)
+``` 
+
+```{r}
+summary(steps1_day)
+``` 
+
+The distribution is now skewed, and the mean is `r signif(mean(steps1_day),5)` and median `r signif(median(steps1_day),5)`. Using this method of imputation, the mean is unchanged but the median has fallen.
+
+
+
+###Weekend activity
+
+Finally, create a new variable *weekend* and use the lattice package to plot the data conditioned on weekend
+
+```{r}
+  act2$wend <- with(act2, ifelse(wkday == "Sat"| wkday == "Sun", "weekend","weekday"))
+```
+ 
+```{r}
+ 
+  xyplot(steps ~ interval|wend,data = act2, lty=1, type = "l")
+    
+```
